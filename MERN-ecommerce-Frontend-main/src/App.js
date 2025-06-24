@@ -1,11 +1,9 @@
-
-import { Counter } from './features/counter/Counter';
 import './App.css';
 import Home from './pages/Home';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 
-import { createBrowserRouter, Link, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -34,6 +32,7 @@ import { positions, Provider } from 'react-alert';
 import AlertTemplate from 'react-alert-template-basic';
 import StripeCheckout from './pages/StripeCheckout';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import Layout from './features/navbar/Layout';// ✅ Added Layout import
 
 const options = {
   timeout: 5000,
@@ -41,59 +40,40 @@ const options = {
 };
 
 const router = createBrowserRouter([
+  // 👇 All user-facing routes go under this layout
   {
     path: '/',
     element: (
       <Protected>
-        <Home></Home>
+        <Layout />
       </Protected>
     ),
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'cart', element: <CartPage /> },
+      { path: 'checkout', element: <Checkout /> },
+      { path: 'product-detail/:id', element: <ProductDetailPage /> },
+      { path: 'order-success/:id', element: <OrderSuccessPage /> },
+      { path: 'my-orders', element: <UserOrdersPage /> },
+      { path: 'profile', element: <UserProfilePage /> },
+      { path: 'stripe-checkout', element: <StripeCheckout /> },
+    ],
   },
+
+  // 👇 Admin routes
   {
     path: '/admin',
     element: (
       <ProtectedAdmin>
-        <AdminHome></AdminHome>
+        <AdminHome />
       </ProtectedAdmin>
-    ),
-  },
-  {
-    path: '/login',
-    element: <LoginPage></LoginPage>,
-  },
-  {
-    path: '/signup',
-    element: <SignupPage></SignupPage>,
-  },
-  {
-    path: '/cart',
-    element: (
-      <Protected>
-        <CartPage></CartPage>
-      </Protected>
-    ),
-  },
-  {
-    path: '/checkout',
-    element: (
-      <Protected>
-        <Checkout></Checkout>
-      </Protected>
-    ),
-  },
-  {
-    path: '/product-detail/:id',
-    element: (
-      <Protected>
-        <ProductDetailPage></ProductDetailPage>
-      </Protected>
     ),
   },
   {
     path: '/admin/product-detail/:id',
     element: (
       <ProtectedAdmin>
-        <AdminProductDetailPage></AdminProductDetailPage>
+        <AdminProductDetailPage />
       </ProtectedAdmin>
     ),
   },
@@ -101,15 +81,7 @@ const router = createBrowserRouter([
     path: '/admin/product-form',
     element: (
       <ProtectedAdmin>
-        <AdminProductFormPage></AdminProductFormPage>
-      </ProtectedAdmin>
-    ),
-  },
-  {
-    path: '/admin/orders',
-    element: (
-      <ProtectedAdmin>
-        <AdminOrdersPage></AdminOrdersPage>
+        <AdminProductFormPage />
       </ProtectedAdmin>
     ),
   },
@@ -117,58 +89,26 @@ const router = createBrowserRouter([
     path: '/admin/product-form/edit/:id',
     element: (
       <ProtectedAdmin>
-        <AdminProductFormPage></AdminProductFormPage>
+        <AdminProductFormPage />
       </ProtectedAdmin>
     ),
   },
   {
-    path: '/order-success/:id',
+    path: '/admin/orders',
     element: (
-      <Protected>
-        <OrderSuccessPage></OrderSuccessPage>{' '}
-      </Protected>
+      <ProtectedAdmin>
+        <AdminOrdersPage />
+      </ProtectedAdmin>
     ),
   },
-  {
-    path: '/my-orders',
-    element: (
-      <Protected>
-        <UserOrdersPage></UserOrdersPage>{' '}
-      </Protected>
-    ),
-  },
-  {
-    path: '/profile',
-    element: (
-      <Protected>
-        <UserProfilePage></UserProfilePage>{' '}
-      </Protected>
-    ),
-  },
-  {
-    path: '/stripe-checkout/',
-    element: (
-      <Protected>
-        <StripeCheckout></StripeCheckout>
-      </Protected>
-    ),
-  },
-  {
-    path: '/logout',
-    element: <Logout></Logout>,
-  },
-  {
-    path: '/forgot-password',
-    element: <ForgotPasswordPage></ForgotPasswordPage>,
-  },
-  {
-    path: '/reset-password',
-    element: <ResetPasswordPage></ResetPasswordPage>,
-  },
-  {
-    path: '*',
-    element: <PageNotFound></PageNotFound>,
-  },
+
+  // 👇 Auth and misc
+  { path: '/login', element: <LoginPage /> },
+  { path: '/signup', element: <SignupPage /> },
+  { path: '/logout', element: <Logout /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '*', element: <PageNotFound /> },
 ]);
 
 function App() {
@@ -179,31 +119,22 @@ function App() {
   useEffect(() => {
     dispatch(checkAuthAsync());
   }, [dispatch]);
-  useEffect(() => {
-  fetch('/products')
-    .then(res => res.json())
-    .then(data => console.log('Test Products:', data));
-}, []);
 
   useEffect(() => {
     if (user) {
       dispatch(fetchItemsByUserIdAsync());
-      // we can get req.user by token on backend so no need to give in front-end
       dispatch(fetchLoggedInUserAsync());
     }
   }, [dispatch, user]);
 
   return (
-    <>
-      <div className="App">
-        {userChecked && (
-          <Provider template={AlertTemplate} {...options}>
-            <RouterProvider router={router} />
-          </Provider>
-        )}
-        {/* Link must be inside the Provider */}
-      </div>
-    </>
+    <div className="App">
+      {userChecked && (
+        <Provider template={AlertTemplate} {...options}>
+          <RouterProvider router={router} />
+        </Provider>
+      )}
+    </div>
   );
 }
 
