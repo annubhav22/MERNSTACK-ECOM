@@ -20,10 +20,11 @@ export default function Cart() {
   const cartLoaded = useSelector(selectCartLoaded)
   const [openModal, setOpenModal] = useState(null);
 
-  const totalAmount = items.reduce(
-    (amount, item) => item.product.discountPrice * item.quantity + amount,
-    0
-  );
+const totalAmount = items.reduce((amount, item) => {
+  const price = parseFloat(item.product?.discountPrice) || 0;
+  const quantity = parseInt(item.quantity) || 1;
+  return amount + price * quantity;
+}, 0);
   const totalItems = items.reduce((total, item) => item.quantity + total, 0);
 
   const handleQuantity = (e, item) => {
